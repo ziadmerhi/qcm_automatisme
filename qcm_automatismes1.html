@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QCM Mathématiques - Automatisme (Note sur 10)</title>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']] // Délimiteurs pour les maths inline
+            },
+            startup: {
+                typeset: false // Désactive le rendu automatique au chargement
+            }
+        };
+    </script>
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        main {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Description & Bouton --- */
+        #description-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        #description-section li {
+            margin-bottom: 10px;
+        }
+        #description-section ul ul {
+            margin-top: 5px;
+            margin-left: 20px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+
+        /* --- Quiz Section --- */
+        #quiz-header {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ccc;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        #timer {
+            color: #dc3545; /* Red for emphasis */
+        }
+
+        #question-box {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .answer-option {
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            user-select: none; /* Prevent text selection */
+        }
+
+        .answer-option:hover {
+            background-color: #dee2e6;
+            border-color: #007bff;
+        }
+
+        .answer-option.correct {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .answer-option.incorrect {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+            opacity: 0.6;
+            cursor: default;
+        }
+
+        /* Ensure MathJax content is well-spaced */
+        .answer-option .MathJax,
+        #question-box .MathJax {
+            display: inline !important; /* Keep inline formulas inline */
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Mathématiques - Partie Automatisme (QCM)</h1>
+    </header>
+
+    <main id="app-container">
+        <section id="description-section">
+            <h2>Description de l'Application</h2>
+            <p>
+                Bienvenue a l’épreuve d'automatisme mathematiques.
+                Le but est de répondre correctement aux 10 questions d'automatismes.
+            </p>
+            <ul>
+                <li><strong>Durée par question :</strong> 30 secondes. Si le temps est écoulé, la question est considérée comme manquée.</li>
+                <li><strong>Système de points (Max. 3 points/question) :</strong>
+                    <ul>
+                        <li>Réponse correcte en <strong>moins de 10 secondes</strong> : **3 points**.</li>
+                        <li>Réponse correcte entre <strong>10 et 20 secondes</strong> : **2 points**.</li>
+                        <li>Réponse correcte entre <strong>20 et 30 secondes</strong> : **1 point**.</li>
+                        <li>Réponse incorrecte ou temps écoulé : **0 point**.</li>
+                    </ul>
+                </li>
+                <li><strong>Note Finale :</strong> Votre score brut sur 30 sera converti en une note sur 10.</li>
+            </ul>
+            <button id="start-button">Commencer le QCM</button>
+        </section>
+
+        <section id="quiz-section" class="hidden">
+            <div id="quiz-header">
+                <span id="question-counter">Question 1/10</span>
+                <span id="timer">Temps restant : 30s</span>
+            </div>
+            
+            <div id="question-box">
+                </div>
+
+            <div id="answers-box">
+                </div>
+        </section>
+
+        <section id="result-section" class="hidden">
+            <h2>Résultats du QCM</h2>
+            <p id="final-score"></p> 
+            <p id="score-details"></p>
+            <button onclick="window.location.reload()">Recommencer</button>
+        </section>
+    </main>
+
+    <script>
+        // --- Définition des questions (10 questions restantes) ---
+        const questions = [
+            {
+                id: 1,
+                text: "L'opération qui permet de calculer 25% de 480 est:",
+                options: {
+                    a: '$\\frac{480}{25\\times100}$',
+                    b: '$25\\times480\\times0,1$',
+                    c: '$\\frac{480\\times100}{25}$',
+                    d: '$\\frac{1}{4}\\times480$'
+                },
+                correctAnswer: 'd'
+            },
+            {
+                id: 2,
+                // MODIFICATION DEMANDÉE : Ordre Décroissant (C=0.21, A=0.20, B=0.19)
+                text: "L'ordre décroissant des nombres $A=\\frac{1}{5}$, $B=\\frac{19}{100}$ et $C=0,21$ est:",
+                options: {
+                    a: '$C>A>B$', 
+                    b: '$A>C>B$', 
+                    c: '$B>C>A$', 
+                    d: '$C>B>A$'
+                },
+                correctAnswer: 'a'
+            },
+            {
+                id: 3,
+                text: "Le plus grand des nombres $A=(\\frac{1}{5})^{2}$, $B=(\\frac{1}{2})^{5}$, $C=0,05$ et $D=(\\frac{1}{3})^{3}$ est:",
+                options: {
+                    a: 'A',
+                    b: 'B',
+                    c: 'C',
+                    d: 'D'
+                },
+                correctAnswer: 'c'
+            },
+            {
+                id: 4,
+                text: "Un article augmente de 10% puis il augmente encore de 10%. Après ces deux augmentations il a augmenté de :",
+                options: {
+                    a: '$(10\\%)^{2}$',
+                    b: '19%',
+                    c: '20%',
+                    d: '21%'
+                },
+                correctAnswer: 'd'
+            },
+            {
+                id: 5,
+                text: "Le tiers d'un quart correspond à la fraction:",
+                options: {
+                    a: '$\\frac{1}{7}$',
+                    b: '$\\frac{3}{4}$',
+                    c: '$\\frac{1}{3}\\times4$',
+                    d: '$\\frac{1}{12}$'
+                },
+                correctAnswer: 'd'
+            },
+            {
+                id: 6,
+                text: "Si $A=10+0,1+\\frac{1}{1000}$, alors A est égal à :",
+                options: {
+                    a: '$A=\\frac{20^{-1}}{1000}$',
+                    b: '$A=\\frac{1}{1000}$',
+                    c: '$A=10,101$',
+                    d: '$A=10,110$'
+                },
+                correctAnswer: 'c'
+            },
+            {
+                id: 7,
+                text: "On considère $A=10^{10}+10^{-10}$. A est environ égal à :",
+                options: {
+                    a: '$10^{0}$',
+                    b: '0',
+                    c: '$10^{10}$',
+                    d: '$100^{0}$'
+                },
+                correctAnswer: 'c'
+            },
+            {
+                id: 8,
+                text: "Une durée de 100 minutes correspond à :",
+                options: {
+                    a: '1 heure',
+                    b: '1,40 heure',
+                    c: '$\\frac{5}{3}$ heure',
+                    d: '2 heures'
+                },
+                correctAnswer: 'c'
+            },
+            // Ancienne Question 9 (supprimée)
+            
+            {
+                id: 9, // Réindexé de 10 à 9
+                text: "On considère la fonction $f$ définie pour tout réel $x$ par $f(x)=7-\\frac{1}{2}(x-3)^{2}$. L'image de 3 par la fonction $f$ est égale à :",
+                options: {
+                    a: '$7-\\frac{1}{2}$',
+                    b: '$7-\\frac{1}{2}(9+9)$',
+                    c: '7',
+                    d: '0'
+                },
+                correctAnswer: 'c'
+            },
+            {
+                id: 10, // Réindexé de 11 à 10
+                text: "Quand on développe $(x-3)^{2}$ on obtient :",
+                options: {
+                    a: '$x^{2}+9$',
+                    b: '$x^{2}-9$',
+                    c: '$x^{2}+6x-9$',
+                    d: '$x^{2}-6x+9$'
+                },
+                correctAnswer: 'd'
+            }
+            // Ancienne Question 12 (supprimée)
+        ];
+
+        // --- Variables d'état du jeu ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let details = { veryFastCorrect: 0, fastCorrect: 0, correct: 0, wrong: 0, missed: 0 };
+        let timer;
+        let startTime;
+        const totalQuestions = questions.length; // 10 questions
+
+        // --- DOM Elements ---
+        const startButton = document.getElementById('start-button');
+        const descriptionSection = document.getElementById('description-section');
+        const quizSection = document.getElementById('quiz-section');
+        const resultSection = document.getElementById('result-section');
+        const questionCounter = document.getElementById('question-counter');
+        const timerDisplay = document.getElementById('timer');
+        const questionBox = document.getElementById('question-box');
+        const answersBox = document.getElementById('answers-box');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const scoreDetailsDisplay = document.getElementById('score-details');
+
+        // --- Functions ---
+
+        /**
+         * Initialise le moteur MathJax pour le rendu des formules LaTeX.
+         */
+        function initializeMathJax() {
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise();
+            }
+        }
+
+        /**
+         * Démarre le jeu et affiche la première question.
+         */
+        function startQuiz() {
+            descriptionSection.classList.add('hidden');
+            quizSection.classList.remove('hidden');
+            loadQuestion();
+        }
+
+        /**
+         * Charge la question actuelle dans le DOM.
+         */
+        function loadQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                showResults();
+                return;
+            }
+
+            const q = questions[currentQuestionIndex];
+            
+            // Reset display
+            answersBox.innerHTML = '';
+            
+            // Update question info
+            questionCounter.textContent = `Question ${currentQuestionIndex + 1}/${totalQuestions}`;
+            
+            // Insert question text
+            questionBox.innerHTML = `
+                <p><strong>Question ${currentQuestionIndex + 1}:</strong> ${q.text}</p>
+                ${q.image ? `<p style="margin-top: 15px;">[Image: ${q.image}]</p>` : ''}
+            `;
+
+            // Insert options
+            Object.keys(q.options).forEach(key => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'answer-option';
+                optionElement.dataset.answer = key;
+                optionElement.innerHTML = `${key.toUpperCase()}. ${q.options[key]}`;
+                optionElement.onclick = () => handleAnswer(key);
+                answersBox.appendChild(optionElement);
+            });
+
+            // Rendre les formules LaTeX APRÈS l'injection du contenu
+            initializeMathJax();
+            
+            // Start timer
+            startTimer();
+        }
+
+        /**
+         * Démarre le compte à rebours de 30 secondes.
+         */
+        function startTimer() {
+            let timeLeft = 30;
+            startTime = Date.now();
+            timerDisplay.textContent = `Temps restant : ${timeLeft}s`;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Temps restant : ${timeLeft}s`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeout();
+                }
+            }, 1000);
+        }
+
+        /**
+         * Gère le cas où le temps est écoulé.
+         */
+        function handleTimeout() {
+            details.missed++;
+            disableAnswers(questions[currentQuestionIndex].correctAnswer, null);
+            
+            setTimeout(() => {
+                clearInterval(timer); 
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2000);
+        }
+
+        /**
+         * Gère la réponse de l'utilisateur avec le barème de points (3, 2, 1).
+         * @param {string} selectedAnswer - La clé de l'option choisie (a, b, c, ou d).
+         */
+        function handleAnswer(selectedAnswer) {
+            clearInterval(timer); 
+            const q = questions[currentQuestionIndex];
+            const timeTaken = (Date.now() - startTime) / 1000;
+            let points = 0;
+            
+            if (selectedAnswer === q.correctAnswer) {
+                // LOGIQUE DE SCORE : 3, 2, ou 1 point
+                if (timeTaken <= 10) {
+                    points = 3;
+                    details.veryFastCorrect++;
+                } else if (timeTaken <= 20) {
+                    points = 2;
+                    details.fastCorrect++;
+                } else { // 20s < timeTaken <= 30s
+                    points = 1;
+                    details.correct++;
+                }
+            } else {
+                details.wrong++;
+            }
+
+            score += points;
+            
+            // Afficher le feedback visuel et désactiver les options
+            disableAnswers(q.correctAnswer, selectedAnswer);
+
+            // Passage à la question suivante après un court délai pour feedback
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2000);
+        }
+
+        /**
+         * Affiche le feedback visuel (correct/incorrect) et désactive les boutons.
+         */
+        function disableAnswers(correctAnswer, selectedAnswer) {
+            const options = answersBox.querySelectorAll('.answer-option');
+            options.forEach(option => {
+                option.onclick = null; // Disable clicks
+                
+                if (option.dataset.answer === correctAnswer) {
+                    option.classList.add('correct');
+                } else if (option.dataset.answer === selectedAnswer) {
+                    option.classList.add('incorrect');
+                } else {
+                    option.classList.add('incorrect'); // Gray out others
+                }
+            });
+        }
+
+        /**
+         * Affiche les résultats finaux du jeu, incluant la conversion sur 10.
+         */
+        function showResults() {
+            quizSection.classList.add('hidden');
+            resultSection.classList.remove('hidden');
+
+            const totalPointsPossible = totalQuestions * 3; // 10 * 3 = 30
+            const totalCorrect = details.veryFastCorrect + details.fastCorrect + details.correct;
+            
+            // CALCUL DE LA NOTE SUR 10
+            const finalScoreOnTen = (score / totalPointsPossible) * 10;
+            
+            finalScoreDisplay.textContent = `Votre Note Finale : ${finalScoreOnTen.toFixed(2)} / 10`;
+            
+            scoreDetailsDisplay.innerHTML = `
+                <p><strong>Détails :</strong></p>
+                <ul>
+                    <li>Score Brut (cumulatif) : ${score} / ${totalPointsPossible}</li>
+                    <li>Questions Totales : ${totalQuestions}</li>
+                    <li>Réponses Très Rapides (< 10s, 3 pts) : ${details.veryFastCorrect}</li>
+                    <li>Réponses Rapides (< 20s, 2 pts) : ${details.fastCorrect}</li>
+                    <li>Réponses Correctes (< 30s, 1 pt) : ${details.correct}</li>
+                    <li>Réponses Incorrectes (0 pt) : ${details.wrong}</li>
+                    <li>Questions Manquées (0 pt) : ${details.missed}</li>
+                    <li>Taux de Réussite des Réponses : ${Math.round((totalCorrect / totalQuestions) * 100)}%</li>
+                </ul>
+            `;
+        }
+
+        // --- Event Listener ---
+        startButton.addEventListener('click', startQuiz);
+    </script>
+</body>
+</html>
