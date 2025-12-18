@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathématiques - Automatisme QCM 1</title>
+
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            background: #007bff;
+            color: white;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        main {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            box-sizing: border-box;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .hidden { display: none !important; }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+
+        #start-button { background: #28a745; color: white; margin-top: 20px; width: 100%; }
+        #start-button:hover { background: #218838; }
+
+        .btn-skip { background: #6c757d; color: white; margin-top: 20px; }
+        .btn-skip:hover { background: #5a6268; }
+
+        #quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        #timer { font-weight: bold; color: #007bff; font-size: 1.2em; }
+        #counter { font-weight: bold; color: #555; }
+
+        .answer-option {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1.1em;
+        }
+
+        .answer-option:hover { border-color: #007bff; background: #e9ecef; }
+        .correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .incorrect { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+
+        .result-box {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 1.1em;
+            border-left: 5px solid transparent;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Mathématiques - Automatisme</h1>
+</header>
+
+<main>
+    <div id="start-screen">
+        <h2>QCM 1 (Révisé)</h2>
+        <p>Prêt pour le test ? Voici les règles :</p>
+        <ul>
+            <li>⏱ **Chronomètre :** Le temps tourne, mais pas de limite imposée.</li>
+            <li>⏭ **Bouton Passer :** Si vous hésitez, passez ! La question reviendra à la fin.</li>
+            <li>📊 **Rapidité :** Les réponses données en moins de 20 secondes sont signalées.</li>
+        </ul>
+        <button id="start-button">DÉMARRER LE JEU</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div id="quiz-header">
+            <span id="counter">Questions restantes : 10</span>
+            <span id="timer">Temps : 0s</span>
+        </div>
+        <div id="question-text" style="font-size: 1.25em; margin-bottom: 25px; line-height: 1.5;"></div>
+        <div id="options-container"></div>
+        <button id="skip-button" class="btn-skip">Passer cette question</button>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h2>Résultats de votre session</h2>
+        <div id="results-display"></div>
+        <button onclick="location.reload()" style="background:#007bff; color:white; margin-top:20px; width:100%;">Recommencer le test</button>
+    </div>
+</main>
+
+<script>
+    // Base de données des 10 questions du QCM 1
+    const questions = [
+        { q: "L'opération qui permet de calculer 25% de 480 est :", a: "d", options: { a: "$\\frac{480}{25\\times100}$", b: "$25\\times480\\times0,1$", c: "$\\frac{480\\times100}{25}$", d: "$\\frac{1}{4}\\times480$" } },
+        { q: "L'ordre décroissant des nombres $A=\\frac{1}{5}$, $B=\\frac{19}{100}$ et $C=0,21$ est :", a: "a", options: { a: "$C>A>B$", b: "$A>C>B$", c: "$B>C>A$", d: "$C>B>A$" } },
+        { q: "Le plus grand des nombres $A=(\\frac{1}{5})^{2}$, $B=(\\frac{1}{2})^{5}$, $C=\\frac{1}{20}$ et $D=(\\frac{1}{3})^{3}$ est :", a: "c", options: { a: "A", b: "B", c: "C", d: "D" } },
+        { q: "Un article augmente de 10% puis il augmente encore de 10%. Il a alors augmenté de :", a: "d", options: { a: "$(10\\%)^{2}$", b: "19%", c: "20%", d: "21%" } },
+        { q: "Le tiers d'un quart correspond à la fraction :", a: "d", options: { a: "$\\frac{1}{7}$", b: "$\\frac{3}{4}$", c: "$\\frac{1}{3}\\times4$", d: "$\\frac{1}{12}$" } },
+        { q: "Si $A=10+0,1+\\frac{1}{1000}$, alors $A$ est égal à :", a: "c", options: { a: "$\\frac{20^{-1}}{1000}$", b: "$\\frac{1}{1000}$", c: "10,101", d: "10,110" } },
+        { q: "On considère $A=10^{10}+10^{-10}$. $A$ est environ égal à :", a: "c", options: { a: "$10^{0}$", b: "0", c: "$10^{10}$", d: "$100^{0}$" } },
+        { q: "Une durée de 100 minutes correspond à :", a: "c", options: { a: "1 heure", b: "1,40 heure", c: "$\\frac{5}{3}$ heure", d: "2 heures" } },
+        { q: "Soit $f(x)=7-\\frac{1}{2}(x-3)^{2}$. L'image de 3 par $f$ est :", a: "c", options: { a: "$7-\\frac{1}{2}$", b: "$7-\\frac{1}{2}(9+9)$", c: "7", d: "0" } },
+        { q: "Le développement de $(x-3)^{2}$ est :", a: "d", options: { a: "$x^{2}+9$", b: "$x^{2}-9$", c: "$x^{2}+6x-9$", d: "$x^{2}-6x+9$" } }
+    ];
+
+    let pendingIndices = questions.map((_, i) => i);
+    let currentIndexInPending = 0;
+    let stats = { correct: 0, wrong: 0, fast: 0 };
+    let sec = 0;
+    let timerInterval;
+
+    const startBtn = document.getElementById('start-button');
+    const skipBtn = document.getElementById('skip-button');
+
+    // Branchement des événements
+    startBtn.onclick = function() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    };
+
+    skipBtn.onclick = function() {
+        if (pendingIndices.length > 1) {
+            currentIndexInPending = (currentIndexInPending + 1) % pendingIndices.length;
+            showQuestion();
+        }
+    };
+
+    function showQuestion() {
+        if (pendingIndices.length === 0) return endQuiz();
+        
+        const qData = questions[pendingIndices[currentIndexInPending]];
+        document.getElementById('counter').innerText = `Questions restantes : ${pendingIndices.length}`;
+        document.getElementById('question-text').innerHTML = `<strong>Question :</strong> ${qData.q}`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        Object.entries(qData.options).forEach(([key, val]) => {
+            const div = document.createElement('div');
+            div.className = 'answer-option';
+            div.innerHTML = `<strong>${key.toUpperCase()}.</strong> ${val}`;
+            div.onclick = function() { selectAnswer(key, qData.a); };
+            container.appendChild(div);
+        });
+
+        if (window.MathJax) MathJax.typesetPromise();
+        startTimer();
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        sec = 0;
+        document.getElementById('timer').innerText = `Temps : 0s`;
+        timerInterval = setInterval(() => {
+            sec++;
+            document.getElementById('timer').innerText = `Temps : ${sec}s`;
+        }, 1000);
+    }
+
+    function selectAnswer(choice, correct) {
+        clearInterval(timerInterval);
+        const options = document.querySelectorAll('.answer-option');
+        
+        if (choice === correct) {
+            stats.correct++;
+            if (sec < 20) stats.fast++;
+        } else {
+            stats.wrong++;
+        }
+
+        // Feedback immédiat
+        options.forEach(opt => {
+            opt.onclick = null; // Désactive les clics
+            const key = opt.innerText.charAt(0).toLowerCase();
+            if (key === correct) opt.classList.add('correct');
+            else if (key === choice) opt.classList.add('incorrect');
+        });
+
+        // Enlever la question de la liste
+        pendingIndices.splice(currentIndexInPending, 1);
+        
+        // Ajuster l'index
+        if (currentIndexInPending >= pendingIndices.length) {
+            currentIndexInPending = 0;
+        }
+
+        setTimeout(showQuestion, 1500);
+    }
+
+    function endQuiz() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        const resScreen = document.getElementById('result-screen');
+        resScreen.classList.remove('hidden');
+        
+        document.getElementById('results-display').innerHTML = `
+            <div class="result-box" style="background:#d4edda; color:#155724; border-left-color: #28a745">✅ Réponses correctes : <strong>${stats.correct}</strong> / 10</div>
+            <div class="result-box" style="background:#f8d7da; color:#721c24; border-left-color: #dc3545">❌ Réponses incorrectes : <strong>${stats.wrong}</strong></div>
+            <div class="result-box" style="background:#fff3cd; color:#856404; border-left-color: #ffc107">⚡ Réponses rapides (moins de 20s) : <strong>${stats.fast}</strong></div>
+        `;
+    }
+</script>
+
+</body>
+</html>
