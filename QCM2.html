@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathématiques - Automatisme QCM 2</title>
+
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            background: #007bff;
+            color: white;
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        main {
+            background: white;
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+            box-sizing: border-box;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .hidden { display: none !important; }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+
+        #start-button { background: #28a745; color: white; width: 100%; margin-top: 20px; }
+        #start-button:hover { background: #218838; }
+
+        .btn-skip { background: #6c757d; color: white; margin-top: 20px; }
+
+        .answer-option {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .answer-option:hover { border-color: #007bff; background: #eef6ff; }
+        .correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724; font-weight: bold; }
+        .incorrect { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
+
+        #quiz-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+
+        #timer { font-weight: bold; color: #007bff; font-size: 1.1em; }
+        #counter { font-weight: bold; color: #495057; }
+
+        .result-box {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 1.1em;
+            border-left: 5px solid transparent;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Mathématiques - Automatisme</h1>
+</header>
+
+<main>
+    <div id="start-screen">
+        <h2>QCM 2</h2>
+        <p>Entraînement sur les automatismes (Niveau 2) :</p>
+        <ul>
+            <li>⏱ **Chronomètre :** Le temps est mesuré pour chaque question.</li>
+            <li>⏭ **Passer :** La question reviendra à la fin si vous passez.</li>
+            <li>📊 **Rapidité :** Bonus si vous répondez en moins de 20 secondes.</li>
+        </ul>
+        <button id="start-button">DÉMARRER LE QCM 2</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div id="quiz-header">
+            <span id="counter">Questions restantes : 10</span>
+            <span id="timer">Temps : 0s</span>
+        </div>
+        <div id="question-text" style="font-size: 1.2em; margin-bottom: 25px; line-height: 1.5;"></div>
+        <div id="options-container"></div>
+        <button id="skip-button" class="btn-skip">Passer cette question</button>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h2>Résultats du QCM 2</h2>
+        <div id="results-display"></div>
+        <button onclick="location.reload()" style="background:#007bff; color:white; margin-top:20px; width:100%;">Recommencer</button>
+    </div>
+</main>
+
+<script>
+    const questions = [
+        { q: "L'opération qui permet de calculer 20% de 350 est :", a: "b", options: { a: "$\\frac{350}{20}$", b: "$0,2 \\times 350$", c: "$350 \\times 1,2$", d: "$350 - 20$" } },
+        { q: "L'ordre croissant des nombres $A=\\frac{1}{4}$, $B=0,26$ et $C=\\frac{23}{100}$ est :", a: "a", options: { a: "$C < A < B$", b: "$A < B < C$", c: "$B < C < A$", d: "$C < B < A$" } },
+        { q: "Le plus grand des nombres $A=(\\frac{1}{4})^{2}$, $B=(\\frac{1}{2})^{6}$, $C=0,07$ et $D=(\\frac{1}{3})^{4}$ est :", a: "c", options: { a: "A", b: "B", c: "C", d: "D" } },
+        { q: "Un article augmente de 20% puis baisse de 20%. Globalement, le prix a :", a: "b", options: { a: "Stagné (0%)", b: "Baissé de 4%", c: "Augmenté de 4%", d: "Baissé de 40%" } },
+        { q: "Le quart d'une demi-heure correspond à la fraction d'une heure :", a: "c", options: { a: "$\\frac{1}{4}$", b: "$\\frac{1}{6}$", c: "$\\frac{1}{8}$", d: "$\\frac{1}{15}$" } },
+        { q: "Si $A=1 + 0,01 + \\frac{1}{1000}$, alors $A$ est égal à :", a: "b", options: { a: "1,101", b: "1,011", c: "1,11", d: "1,0011" } },
+        { q: "On considère $A=10^{5} - 10^{2}$. Le nombre $A$ est environ égal à :", a: "b", options: { a: "$10^{3}$", b: "$10^{5}$", c: "$10^{7}$", d: "$0$" } },
+        { q: "Une durée de 75 minutes correspond à :", a: "c", options: { a: "1,15 heure", b: "1,5 heure", c: "1,25 heure", d: "1,3 heure" } },
+        { q: "Soit $f(x)=10-(x+2)^{2}$. L'image de $-2$ par $f$ est :", a: "a", options: { a: "10", b: "6", c: "14", d: "0" } },
+        { q: "Le développement de $-2(x+5)^{2}$ est :", a: "c", options: { a: "$-2x^{2}+50$", b: "$-2x^{2}-50$", c: "$-2x^{2}-20x-50$", d: "$-2x^{2}+20x-50$" } }
+    ];
+
+    let pendingIndices = questions.map((_, i) => i);
+    let currentIndex = 0;
+    let stats = { correct: 0, wrong: 0, fast: 0 };
+    let sec = 0;
+    let timer;
+
+    const startBtn = document.getElementById('start-button');
+    const skipBtn = document.getElementById('skip-button');
+
+    startBtn.onclick = () => {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        loadQuestion();
+    };
+
+    skipBtn.onclick = () => {
+        if (pendingIndices.length > 1) {
+            currentIndex = (currentIndex + 1) % pendingIndices.length;
+            loadQuestion();
+        }
+    };
+
+    function loadQuestion() {
+        if (pendingIndices.length === 0) return showEnd();
+        
+        const data = questions[pendingIndices[currentIndex]];
+        document.getElementById('counter').innerText = `Questions restantes : ${pendingIndices.length}`;
+        document.getElementById('question-text').innerHTML = `<strong>Question :</strong> ${data.q}`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        Object.entries(data.options).forEach(([key, val]) => {
+            const div = document.createElement('div');
+            div.className = 'answer-option';
+            div.innerHTML = `<strong>${key.toUpperCase()}.</strong> ${val}`;
+            div.onclick = () => validate(key, data.a);
+            container.appendChild(div);
+        });
+
+        if (window.MathJax) MathJax.typesetPromise();
+        runTimer();
+    }
+
+    function runTimer() {
+        clearInterval(timer);
+        sec = 0;
+        document.getElementById('timer').innerText = `Temps : 0s`;
+        timer = setInterval(() => {
+            sec++;
+            document.getElementById('timer').innerText = `Temps : ${sec}s`;
+        }, 1000);
+    }
+
+    function validate(choice, correct) {
+        clearInterval(timer);
+        const options = document.querySelectorAll('.answer-option');
+        
+        if (choice === correct) {
+            stats.correct++;
+            if (sec < 20) stats.fast++;
+        } else {
+            stats.wrong++;
+        }
+
+        options.forEach(opt => {
+            opt.onclick = null;
+            const key = opt.innerText.charAt(0).toLowerCase();
+            if (key === correct) opt.classList.add('correct');
+            else if (key === choice) opt.classList.add('incorrect');
+        });
+
+        pendingIndices.splice(currentIndex, 1);
+        if (currentIndex >= pendingIndices.length) currentIndex = 0;
+
+        setTimeout(loadQuestion, 1500);
+    }
+
+    function showEnd() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        
+        document.getElementById('results-display').innerHTML = `
+            <div class="result-box" style="background:#d4edda; color:#155724; border-left-color:#28a745">✅ Correctes : <strong>${stats.correct}</strong> / 10</div>
+            <div class="result-box" style="background:#f8d7da; color:#721c24; border-left-color:#dc3545">❌ Incorrectes : <strong>${stats.wrong}</strong></div>
+            <div class="result-box" style="background:#fff3cd; color:#856404; border-left-color:#ffc107">⚡ Réponses rapides (< 20s) : <strong>${stats.fast}</strong></div>
+        `;
+    }
+</script>
+
+</body>
+</html>
